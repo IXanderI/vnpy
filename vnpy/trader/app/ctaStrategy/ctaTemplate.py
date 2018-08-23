@@ -12,6 +12,9 @@ from vnpy.trader.vtObject import VtBarData
 
 from .ctaBase import *
 
+import smtplib
+from email.mime.text import MIMEText
+
 
 ########################################################################
 class CtaTemplate(object):
@@ -49,6 +52,10 @@ class CtaTemplate(object):
     
     # 同步列表，保存了需要保存到数据库的变量名称
     syncList = ['pos']
+
+    #############
+    # 要发给谁
+    mailto_list = ["fth545@126.com"]
 
     #----------------------------------------------------------------------
     def __init__(self, ctaEngine, setting):
@@ -127,6 +134,8 @@ class CtaTemplate(object):
         """发送委托"""
         if self.trading:
             # 如果stop为True，则意味着发本地停止单
+            #发邮件
+            self.send_mail(self.mailto_list, "Trading: "+self.vtSymbol, "The "+self.vtSymbol+ "has orderType: "+str(orderType)+"at price: " +str(price)+"with volume: "+str(volume) + "stop:"+str(stop))
             if stop:
                 vtOrderIDList = self.ctaEngine.sendStopOrder(self.vtSymbol, orderType, price, volume, self)
             else:
@@ -135,6 +144,34 @@ class CtaTemplate(object):
         else:
             # 交易停止时发单返回空字符串
             return []
+
+    def send_mail(self,to_list, sub, content):
+        '''
+        to_list:发给谁
+        sub:主题
+        content:内容
+        send_mail("aaa@126.com","sub","content")
+        '''
+        #####################
+        # 设置服务器，用户名、口令以及邮箱的后缀
+        mail_host = "smtp.163.com"
+        mail_user = "sever_status"
+        mail_pass = "sever12345678"
+        mail_postfix = "163.com"
+
+        me = mail_user + "<" + mail_user + "@" + mail_postfix + ">"
+        msg = MIMEText(content)
+        msg['Subject'] = sub
+        msg['From'] = me
+        msg['To'] = ";".join(to_list)
+        try:
+            s = smtplib.SMTP()
+            s.connect(mail_host)
+            s.login(mail_user, mail_pass)
+            s.sendmail(me, to_list, msg.as_string())
+            s.close()
+        except Exception, e:
+            print str(e)
         
     #----------------------------------------------------------------------
     def cancelOrder(self, vtOrderID):
