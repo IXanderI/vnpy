@@ -33,6 +33,8 @@ class CtaTemplate(object):
     vtSymbol = EMPTY_STRING        # 交易的合约vt系统代码    
     productClass = EMPTY_STRING    # 产品类型（只有IB接口需要）
     currency = EMPTY_STRING        # 货币（只有IB接口需要）
+    #发邮件开关
+    send_mail_boolean = False
     
     # 策略的基本变量，由引擎管理
     inited = False                 # 是否进行了初始化
@@ -135,7 +137,8 @@ class CtaTemplate(object):
         if self.trading:
             # 如果stop为True，则意味着发本地停止单
             #发邮件
-            self.send_mail(self.mailto_list, "Trading: "+self.vtSymbol, "The "+self.vtSymbol+ "has orderType: "+str(orderType)+"at price: " +str(price)+"with volume: "+str(volume) + "stop:"+str(stop))
+            if self.send_mail_boolean:
+                self.send_mail(self.mailto_list, "Trading: "+self.vtSymbol, "The "+self.vtSymbol+ "has orderType: "+str(orderType)+"at price: " +str(price)+"with volume: "+str(volume) + "stop:"+str(stop))
             if stop:
                 vtOrderIDList = self.ctaEngine.sendStopOrder(self.vtSymbol, orderType, price, volume, self)
             else:
